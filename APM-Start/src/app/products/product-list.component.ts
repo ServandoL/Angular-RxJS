@@ -12,7 +12,8 @@ import { ProductService } from './product.service';
 })
 export class ProductListComponent {
   pageTitle = 'Product List';
-  errorMessage = '';
+  private errorMessageSubject = new Subject<string>();
+  errorMessage$ = this.errorMessageSubject.asObservable();
 
   private categorySelectSubject = new Subject<number>();
   // private categorySelectSubject = new BehaviorSubject<number>(0); ==> same as startWith(0) which defines an initial value emitted before the input stream values
@@ -30,14 +31,14 @@ export class ProductListComponent {
       )
     ),
     catchError((err) => {
-      this.errorMessage = err;
+      this.errorMessageSubject.next(err);
       return EMPTY;
     })
   );
 
   categories$ = this.productCategoryService.productCategories$.pipe(
     catchError((err) => {
-      this.errorMessage = err;
+      this.errorMessageSubject.next(err);
       return EMPTY;
     })
   );
