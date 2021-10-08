@@ -16,10 +16,10 @@ export class ProductService {
   private suppliersUrl = this.supplierService.suppliersUrl;
 
   products$ = this.http.get<Product[]>(this.productsUrl).pipe(
-    map((products) =>
+    map((products) =>                             // map through Product[]
       products.map(
-        (product) =>
-          ({
+        (product) =>                              // map through each Product
+          ({                                      // use spread to destructure the object and create a new object with old values and edit two properties
             ...product,
             price: product.price * 1.5,
             searchKey: [product.productName],
