@@ -81,6 +81,16 @@ export class ProductService {
     this.productInsertSubject.next(newProduct);
   }
 
+  // use combineLatest() to combine the selected product stream with the data stream of all suppliers
+  selectedProductSuppliers$ = combineLatest([
+    this.selectedProduct$,
+    this.supplierService.suppliers$
+  ]).pipe(
+    map(([selectedProduct, suppliers]) =>
+      suppliers.filter(supplier => selectedProduct.supplierIds.includes(supplier.id))
+    )
+  )
+
   constructor(
     private http: HttpClient,
     private supplierService: SupplierService,
