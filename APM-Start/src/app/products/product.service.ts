@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { BehaviorSubject, combineLatest, merge, Observable, Subject, throwError } from 'rxjs';
-import { catchError, map, scan, share, shareReplay, tap } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, from, merge, Observable, Subject, throwError } from 'rxjs';
+import { catchError, filter, map, mergeMap, scan, share, shareReplay, switchMap, tap, toArray } from 'rxjs/operators';
 
 import { Product } from './product';
 import { Supplier } from '../suppliers/supplier';
@@ -81,15 +81,29 @@ export class ProductService {
     this.productInsertSubject.next(newProduct);
   }
 
+  // Get it all approach
   // use combineLatest() to combine the selected product stream with the data stream of all suppliers
-  selectedProductSuppliers$ = combineLatest([
-    this.selectedProduct$,
-    this.supplierService.suppliers$
-  ]).pipe(
-    map(([selectedProduct, suppliers]) =>
-      suppliers.filter(supplier => selectedProduct.supplierIds.includes(supplier.id))
-    )
-  )
+  // selectedProductSuppliers$ = combineLatest([
+  //   this.selectedProduct$,
+  //   this.supplierService.suppliers$
+  // ]).pipe(
+  //   map(([selectedProduct, suppliers]) =>
+  //     suppliers.filter(supplier => selectedProduct.supplierIds.includes(supplier.id))
+  //   )
+  // )
+
+  // just in time approach
+  selectedProductSuppliers$ = this.selectedProduct$.pipe(     // starts with the selectedProduct observable
+    filter(selectedProduct => !!selectedProduct),             // filter at beginning of pipeline to skip the process if the selected product is undefined or null
+    switchMap(selectedProduct =>                              // then creates inner observables from the array of supplier Ids for the product
+        from(selectedProduct.supplierIds).pipe(
+          mergeMap(supplierId => this.http.get<Supplier>(`${this.suppliersUrl}/${supplierId}`)),  // issues an http.get request for each supplier id, creating inner observables
+          toArray(),                                                                              // and merges the results into a stream of individual suppliers
+                                                                                                  // uses toArray() to collect the emissions and emits them as a single array
+          tap(suppliers => console.log('product suppliers', JSON.stringify(suppliers)))
+        )
+      )
+  );
 
   constructor(
     private http: HttpClient,
