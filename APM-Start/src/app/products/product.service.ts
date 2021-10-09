@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { BehaviorSubject, combineLatest, Observable, throwError } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, merge, Observable, Subject, throwError } from 'rxjs';
+import { catchError, map, scan, tap } from 'rxjs/operators';
 
 import { Product } from './product';
 import { Supplier } from '../suppliers/supplier';
@@ -57,6 +57,28 @@ export class ProductService {
     this.productSelectedSubject.next(selectedProductId);
   }
 
+  // declare an Add action - steps to reacting to actions
+  // 1) create an action stream by using Subject<>()
+  private productInsertSubject = new Subject<Product>();
+  // 2) expose the subject's observable using asObservable()
+  productInsertedAction$ = this.productInsertSubject.asObservable();
+  // 3) combine the action stream with the data stream
+  // merge function to merge the data stream and the action stream
+  productsWithAdd$ = merge(
+    this.productsWithCategory$,
+    this.productInsertedAction$
+  ).pipe(
+    scan((acc: Product[], value: Product) => [...acc, value])
+  )
+  // the scan takes in the accumulator of type Product[]\
+  // and the current value which is a Product - then create a new array with the acc array plus the new array from the action stream
+
+  // in real-world application, pass in the new product with the edit operation
+  addProduct(newProduct?: Product) {
+    newProduct = newProduct || this.fakeProduct();
+    this.productInsertSubject.next(newProduct);
+  }
+
   constructor(
     private http: HttpClient,
     private supplierService: SupplierService,
@@ -71,7 +93,7 @@ export class ProductService {
       description: 'Our new product',
       price: 8.9,
       categoryId: 3,
-      // category: 'Toolbox',
+      category: 'Toolbox',
       quantityInStock: 30,
     };
   }

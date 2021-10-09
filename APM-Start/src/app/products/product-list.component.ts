@@ -19,8 +19,9 @@ export class ProductListComponent {
   // private categorySelectSubject = new BehaviorSubject<number>(0); ==> same as startWith(0) which defines an initial value emitted before the input stream values
   categorySelectedAction$ = this.categorySelectSubject.asObservable();
 
+  // using productsWithAdd since it's merged with productsWithCategory stream
   products$ = combineLatest([
-    this.productService.productsWithCategory$,
+    this.productService.productsWithAdd$,
     this.categorySelectedAction$.pipe(
       startWith(0)
     ),
@@ -49,7 +50,7 @@ export class ProductListComponent {
   ) {}
 
   onAdd(): void {
-    console.log('Not yet implemented');
+    this.productService.addProduct();
   }
 
   onSelected(categoryId: string): void {
