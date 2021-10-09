@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 
 import { throwError, Observable, of } from 'rxjs';
 import { Supplier } from './supplier';
-import { concatMap, map, mergeMap, tap } from 'rxjs/operators';
+import { concatMap, map, mergeMap, switchMap, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -25,8 +25,26 @@ export class SupplierService {
     mergeMap(id => this.http.get<Supplier>(`${this.suppliersUrl}/${id}`))
   )
 
+  suppliersWithSwitchMap$ = of(1, 5, 8).pipe(
+    tap(id => console.log(`switchMap source observable ${id}`)),
+    switchMap(id => this.http.get<Supplier>(`${this.suppliersUrl}/${id}`))
+  )
 
-  constructor(private http: HttpClient) { }
+
+  constructor(private http: HttpClient) {
+    // Examples - don't use these inside a constructor, this is mainly for demonstrations
+    /* regular mapping of higher order observables - DON'T DO
+    this.suppliersWithMap$.subscribe(
+      (o => o.subscribe(
+        item => console.log(`map result ${item}`)
+      ))
+    )
+    */
+    this.suppliersWithConcatMap$.subscribe(item => console.log(`concatMap result ${item}`));
+    this.suppliersWithMergeMap$.subscribe(item => console.log(`mergeMap result ${item}`));
+    this.suppliersWithSwitchMap$.subscribe(item => console.log(`switchMap result ${item}`));
+
+  }
 
   private handleError(err: any): Observable<never> {
     // in a real world app, we may send the server to some remote logging infrastructure
