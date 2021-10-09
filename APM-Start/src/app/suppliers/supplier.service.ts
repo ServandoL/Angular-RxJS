@@ -1,13 +1,19 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { throwError, Observable } from 'rxjs';
+import { throwError, Observable, of } from 'rxjs';
+import { Supplier } from './supplier';
+import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SupplierService {
   suppliersUrl = 'api/suppliers';
+
+  supplierWithMaP$ = of(1, 5, 8).pipe(
+    map(id => this.http.get<Supplier>(`${this.suppliersUrl}/${id}`))
+  )
 
   constructor(private http: HttpClient) { }
 
