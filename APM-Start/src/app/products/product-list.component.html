@@ -1,4 +1,4 @@
-<div class="card">
+<div class="card" *ngIf="viewModel$ | async as viewModel">
   <div class="card-header">
     {{pageTitle}}
   </div>
@@ -10,7 +10,7 @@
           <select class="form-control"
                   (change)="onSelected($event.target.value)">
             <option value="0">- Display All -</option>
-            <option *ngFor="let category of categories$ | async"
+            <option *ngFor="let category of viewModel.categories"
                     [value]="category.id">{{ category.name }}</option>
           </select>
         </div>
@@ -23,8 +23,7 @@
     </div>
 
     <div class="table-responsive">
-      <table class="table mb-0"
-             *ngIf="products$ | async as products">
+      <table class="table mb-0">
         <thead>
           <tr>
             <th>Product</th>
@@ -34,7 +33,7 @@
             <th>In Stock</th>
           </tr>
         </thead>
-        <tbody *ngFor="let product of products">
+        <tbody *ngFor="let product of viewModel.products">
           <tr>
             <td>{{ product.productName }}</td>
             <td>{{ product.productCode }}</td>

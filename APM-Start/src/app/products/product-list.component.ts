@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
-import { catchError, combineAll, map, startWith } from 'rxjs/operators';
+import { catchError, combineAll, filter, map, startWith } from 'rxjs/operators';
 import { ProductCategoryService } from '../product-categories/product-category.service';
 
 import { ProductService } from './product.service';
@@ -43,6 +43,14 @@ export class ProductListComponent {
       return EMPTY;
     })
   );
+
+  viewModel$ = combineLatest([
+    this.products$,
+    this.categories$
+  ]).pipe(
+    filter(([products]) => !!products),
+    map(([products, categories]) => ({products, categories}))
+  )
 
   constructor(
     private productService: ProductService,
